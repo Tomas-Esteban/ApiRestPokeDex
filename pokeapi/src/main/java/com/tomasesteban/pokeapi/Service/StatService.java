@@ -1,18 +1,14 @@
 package com.tomasesteban.pokeapi.Service;
 
+import java.io.IOException;
 import java.util.List;
 
-import com.tomasesteban.pokeapi.Exception.NotFoundExcep;
+
 import com.tomasesteban.pokeapi.Models.Stats;
 
 public interface StatService {
-    Stats createStats(Stats stats) throws Exception;
 
-    List<Stats> getAllStats() throws Exception;
+    Stats getStatsById(long id) throws IOException, InterruptedException;
 
-    Stats getStatsById(long id) throws NotFoundExcep;
-
-    Stats updateStats(Stats stats) throws Exception;
-
-    void deleteStats(long id) throws NotFoundExcep;
+	Stats getStatsByName(String name) throws IOException, InterruptedException;
 }

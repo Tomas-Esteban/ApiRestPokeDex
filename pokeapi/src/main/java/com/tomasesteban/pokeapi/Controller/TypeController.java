@@ -8,10 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.tomasesteban.pokeapi.Dto.TypeDto;
-import com.tomasesteban.pokeapi.Exception.NotFoundExcep;
+
 import com.tomasesteban.pokeapi.Models.Type;
 import com.tomasesteban.pokeapi.Service.TypeService;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,47 +25,27 @@ public class TypeController {
     private ModelMapper modelMapper;
     private TypeService service;
 
-    @GetMapping
-    private ResponseEntity<List<TypeDto>> getAllTypes() throws Exception {
-
-        List<TypeDto> typeResponse = service.getAllTypes()
-                .stream()
-                .map(type -> modelMapper.map(type, TypeDto.class))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok().body(typeResponse);
-    }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<TypeDto> getTypeById(@PathVariable("id") Long id) throws NotFoundExcep {
-
-        Type type = service.getTypeById(id);
-        TypeDto typeResponse = modelMapper.map(type, TypeDto.class);
-        return ResponseEntity.ok().body(typeResponse);
+    public ResponseEntity<Type> getTypeById(@PathVariable("id") Long id) throws IOException , InterruptedException {
+        Type type = new Type();
+		try {
+			type = service.getTypeById(id);
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+        return ResponseEntity.ok().body(type);
     }
+    
+    @GetMapping(params = "name")
+    public ResponseEntity<Type> getTypeByName(@RequestParam("name") String name) throws IOException , InterruptedException {
 
-    @PostMapping
-    public ResponseEntity<TypeDto> createType(@RequestBody TypeDto TypeDto) throws Exception {
-
-        Type typeRequest = modelMapper.map(TypeDto, Type.class);
-        Type type = service.createType(typeRequest);
-        TypeDto typeResponse = modelMapper.map(type, TypeDto.class);
-
-        return new ResponseEntity<TypeDto>(typeResponse, HttpStatus.CREATED);
-    }
-
-    @PutMapping
-    public ResponseEntity<TypeDto> updateType(@RequestBody TypeDto TypeDto) throws Exception {
-
-        Type typeRequest = modelMapper.map(TypeDto, Type.class);
-        Type type = service.updateType(typeRequest);
-        TypeDto typeResponse = modelMapper.map(type, TypeDto.class);
-        return ResponseEntity.ok().body(typeResponse);
-    }
-
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity deleteType(@PathVariable("id") Long id) throws Exception {
-
-        service.deleteType(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+    	Type type = new Type();
+		try {
+			type = service.getTypeByName(name);
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
+        return ResponseEntity.ok().body(type);
     }
 }

@@ -1,8 +1,11 @@
 package com.tomasesteban.pokeapi.Controller;
 import com.tomasesteban.pokeapi.Dto.PokemonDto;
-import com.tomasesteban.pokeapi.Exception.NotFoundExcep;
+
 import com.tomasesteban.pokeapi.Models.Pokemon;
 import com.tomasesteban.pokeapi.Service.PokemonService;
+
+import java.io.IOException;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,14 +23,19 @@ public class PokemonController {
     private PokemonService service;
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<PokemonDto> getPokemonById(@PathVariable("id") Long id) throws NotFoundExcep {
-    	PokemonDto pokemon = service.getPokemonById(id);
+    public ResponseEntity<Pokemon> getPokemonById(@PathVariable("id") Long id) throws IOException , InterruptedException {
+    	Pokemon pokemon = service.getPokemonById(id);
         return ResponseEntity.ok().body(pokemon);
     }
 
     @GetMapping(params = "name")
-    public ResponseEntity<PokemonDto> getPokemonByName(@RequestParam("name") String name) throws NotFoundExcep {
-        PokemonDto pokemon = service.getPokemonByName(name);
+    public ResponseEntity<Pokemon> getPokemonByName(@RequestParam("name") String name) throws IOException , InterruptedException {
+        Pokemon pokemon = new Pokemon();
+		try {
+			pokemon = service.getPokemonByName(name);
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+		}
         return ResponseEntity.ok().body(pokemon);
     }
 

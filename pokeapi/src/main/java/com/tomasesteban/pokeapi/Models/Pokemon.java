@@ -5,7 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "pokemons")
@@ -22,20 +22,19 @@ public class Pokemon implements Serializable {
     private String name;
     private int height;
     private int weight;
-    @ManyToOne
-    @JoinColumn(name = "generation_id")
-    private Generation generation;
-    @OneToOne
-    @JoinColumn(name = "stats_id")
-    private Stats stats;
+    @ElementCollection
+    @MapKeyColumn(name = "stat_name")
+    @Column(name = "stat_value")
+    @CollectionTable(name = "pokemon_stats", joinColumns = @JoinColumn(name = "pokemon_id"))
+    private Map<String,String> stats;
     @ManyToOne
     @JoinColumn(name = "region_id")
     private Region region;
-    @ManyToMany
-    @JoinTable(
-            name = "pokemon_type",
-            joinColumns = @JoinColumn(name = "pokemon_id"),
-            inverseJoinColumns = @JoinColumn(name = "type_id"))
-    private List<Type> types;
+    
+    @ElementCollection
+	@CollectionTable(name = "pokemon_types", joinColumns = @JoinColumn(name = "pokemon_id"))
+	@MapKeyColumn(name = "types_name")
+	@Column(name = "types_url")
+    private Map<Integer, String> types;
    
 }

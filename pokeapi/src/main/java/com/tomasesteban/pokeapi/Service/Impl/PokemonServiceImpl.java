@@ -1,20 +1,32 @@
 package com.tomasesteban.pokeapi.Service.Impl;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.tomasesteban.pokeapi.Dto.PokemonDto;
 import com.tomasesteban.pokeapi.Models.Pokemon;
-
+import com.tomasesteban.pokeapi.Models.Stats;
+import com.tomasesteban.pokeapi.Models.Type;
 import com.tomasesteban.pokeapi.PokeApiInt.ApiResponse.PokemonApiResponse;
 import com.tomasesteban.pokeapi.Service.PokemonService;
-import com.tomasesteban.pokeapi.Exception.NotFoundExcep;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import springfox.documentation.spring.web.json.Json;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.util.CollectionUtils;
 
-
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.*;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,7 +34,9 @@ import java.util.stream.Collectors;
 public class PokemonServiceImpl implements PokemonService {
 
     private final RestTemplate restTemplate;
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    
     @Value("${pokeapi.base.url}")
     private String baseUrl;
 
@@ -31,53 +45,120 @@ public class PokemonServiceImpl implements PokemonService {
 		this.restTemplate = restTemplate;
 	}
 
-	public List<PokemonDto> getAllPokemon() throws Exception {
+	public List<Pokemon> getAllPokemon() throws Exception {
+		String url = baseUrl + "pokemon/";
+		HttpResponse<String> response = null;
+		Pokemon p = new Pokemon();
+        PokemonDto pDto = new PokemonDto();
+        List<Pokemon> pList = new ArrayList();
         try {
-            log.info("Fetching all Pokemon from PokeAPI.");
-            String url = baseUrl + "pokemon?limit=10";  
-            PokemonApiResponse response = (PokemonApiResponse) restTemplate.getForObject(url, PokemonApiResponse.class);
-            if (response == null || CollectionUtils.isEmpty(response.getResults())) {
-                return Collections.emptyList();
-            }
-            return response.getResults().stream()
-                    .map(pokemonDto -> pokemonDto)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new Exception("Error while fetching all pokemon." + e.getMessage());
-        }
+        	HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			pDto = parseJsonToPokemon(response.body())	;
+			p = mapToPokemon(pDto);
+			pList.add(p);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+        return pList;
     }
 
-    public PokemonDto getPokemonById(long id) throws NotFoundExcep {
+    public Pokemon getPokemonById(long id) throws IOException , InterruptedException {
         String url = baseUrl + "pokemon/" + id;
-        return restTemplate.getForObject(url, PokemonDto.class);
-        /*PokemonDto pokemonDto = restTemplate.getForObject(url, PokemonDto.class);
-        if (pokemonDto == null) {
-            throw new NotFoundExcep("Pokemon with Id " + id + " was not found");
-        }
-        return mapToPokemon(pokemonDto);*/
+        HttpResponse<String> response = null;
+        Pokemon p = new Pokemon();
+        PokemonDto pDto = new PokemonDto();
+        try {
+        	HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			pDto = parseJsonToPokemon(response.body())	;
+			p = mapToPokemon(pDto);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+        return p;
+        
+        
     }
 
-    public PokemonDto getPokemonByName(String name) throws NotFoundExcep {
+    public Pokemon getPokemonByName(String name) throws IOException ,InterruptedException{
         String url = baseUrl + "pokemon/" + name;
-        return restTemplate.getForObject(url, PokemonDto.class);
-        /*PokemonDto pokemonDto = restTemplate.getForObject(url, PokemonDto.class);
-        if (pokemonDto == null) {
-            throw new NotFoundExcep("Pokemon with name " + name + " was not found");
-        }
-        return mapToPokemon(pokemonDto);*/
+        HttpResponse<String> response = null;
+        Pokemon p = new Pokemon();
+        PokemonDto pDto = new PokemonDto();
+        try {
+        	HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+			pDto = parseJsonToPokemon(response.body())	;
+			p = mapToPokemon(pDto);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return p;
     }
 
     private Pokemon mapToPokemon(PokemonDto pokemonDto) {
-        // Convertir PokemonDto a Pokemon 
         Pokemon pokemon = new Pokemon();
         pokemon.setId(pokemonDto.getId());
-        pokemon.setGeneration(pokemonDto.getGeneration());
-        pokemon.setHeight(pokemonDto.getHeight());
         pokemon.setName(pokemonDto.getName());
-        pokemon.setRegion(pokemonDto.getRegion());
+        pokemon.setHeight(pokemonDto.getHeight());
+        pokemon.setWeight(pokemonDto.getWeight());
         pokemon.setStats(pokemonDto.getStats());
         pokemon.setTypes(pokemonDto.getTypes());
-        pokemon.setWeight(pokemonDto.getWeight());
         return pokemon;
+    }
+    
+    private PokemonDto parseJsonToPokemon(String json) {
+        PokemonDto pokemon = new PokemonDto();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode rootNode = objectMapper.readTree(json);
+
+            pokemon.setId(rootNode.path("id").asLong());
+            pokemon.setName(rootNode.path("name").asText());
+            pokemon.setHeight(rootNode.path("height").asInt());
+            pokemon.setWeight(rootNode.path("weight").asInt());
+
+            pokemon.setStats(parseStatsMap(rootNode.path("stats")));
+
+            pokemon.setTypes(parseTypesMap(rootNode.path("types")));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pokemon;
+    }
+
+    private Map<String, String> parseStatsMap(JsonNode node) {
+        Map<String, String> map = new HashMap<>();
+        if (node.isArray()) {
+            for (JsonNode item : node) {
+                String statName = item.path("stat").path("name").asText();
+                String statValue = Integer.toString(item.path("base_stat").asInt());
+                map.put(statName, statValue);
+            }
+        }
+        return map;
+    }
+
+    private Map<Integer, String> parseTypesMap(JsonNode node) {
+        Map<Integer, String> map = new HashMap<>();
+        if (node.isArray()) {
+            for (JsonNode item : node) {
+                int typeSlot = item.path("slot").asInt();
+                String typeName = item.path("type").path("name").asText();
+                String typeUrl = item.path("type").path("url").asText();
+                map.put(typeSlot, typeName + " - " + typeUrl);
+            }
+        }
+        return map;
     }
 }

@@ -8,15 +8,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.tomasesteban.pokeapi.Dto.RegionDto;
-import com.tomasesteban.pokeapi.Exception.NotFoundExcep;
+
 import com.tomasesteban.pokeapi.Models.Region;
 import com.tomasesteban.pokeapi.Service.RegionService;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("region")
+@RequestMapping("/region")
 @AllArgsConstructor
 public class RegionController {
 
@@ -24,44 +25,32 @@ public class RegionController {
     private ModelMapper modelMapper;
     private RegionService service;
 
-    @GetMapping
-    private ResponseEntity<List<RegionDto>> findAll() throws Exception {
-        List<RegionDto> regionResponse = service.getAllRegions()
-                .stream()
-                .map(region -> modelMapper.map(region, RegionDto.class))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok().body(regionResponse);
-    }
-
     @GetMapping(value = "/{id}")
-    public ResponseEntity<RegionDto> findById(@PathVariable("id") Long id) throws NotFoundExcep {
-        Region region = service.getRegionById(id);
+    public ResponseEntity<RegionDto> getRegionById(@PathVariable("id") Long id) throws IOException , InterruptedException {
+        Region region = new Region();
+		try {
+			region = service.getRegionById(id);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
         RegionDto regionResponse = modelMapper.map(region, RegionDto.class);
         return ResponseEntity.ok().body(regionResponse);
     }
-
-    @PostMapping
-    public ResponseEntity<RegionDto> create(@RequestBody RegionDto RegionDto) throws Exception {
-        Region regionRequest = modelMapper.map(RegionDto, Region.class);
-        Region region = service.createRegion(regionRequest);
-        RegionDto regionResponse = modelMapper.map(region, RegionDto.class);
-
-        return new ResponseEntity<RegionDto>(regionResponse, HttpStatus.CREATED);
-    }
-
-    @PutMapping
-    public ResponseEntity<RegionDto> update(@RequestBody RegionDto RegionDto) throws Exception {
-        Region regionRequest = modelMapper.map(RegionDto, Region.class);
-        Region region = service.updateRegion(regionRequest);
+    
+    @GetMapping(params = "name")
+    public ResponseEntity<RegionDto> getRegionByName(@RequestParam("name") String name) throws IOException , InterruptedException {
+    	Region region = new Region();
+		try {
+			region = service.getRegionByName(name);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
         RegionDto regionResponse = modelMapper.map(region, RegionDto.class);
         return ResponseEntity.ok().body(regionResponse);
-    }
-
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity delete(@PathVariable("id") Long id) throws Exception {
-
-        service.deleteRegion(id);
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

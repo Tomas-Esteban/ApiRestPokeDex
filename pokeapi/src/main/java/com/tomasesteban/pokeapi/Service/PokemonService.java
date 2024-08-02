@@ -1,18 +1,17 @@
 package com.tomasesteban.pokeapi.Service;
 
 import com.tomasesteban.pokeapi.Dto.PokemonDto;
-import com.tomasesteban.pokeapi.Exception.NotFoundExcep;
 import com.tomasesteban.pokeapi.Models.Pokemon;
 
-
+import java.io.IOException;
 import java.util.List;
 
 
 
 public interface PokemonService {
 
-    List<PokemonDto> getAllPokemon() throws Exception;
-    PokemonDto getPokemonById(long id) throws NotFoundExcep;
-    PokemonDto getPokemonByName(String name) throws NotFoundExcep;
+    List<Pokemon> getAllPokemon() throws Exception;
+    Pokemon getPokemonById(long id) throws IOException, InterruptedException;
+    Pokemon getPokemonByName(String name) throws  IOException, InterruptedException;
 
 }
