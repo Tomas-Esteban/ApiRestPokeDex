@@ -1,6 +1,7 @@
 package com.tomasesteban.pokeapi.Dto;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 import com.tomasesteban.pokeapi.Models.Region;
@@ -12,7 +13,10 @@ import com.tomasesteban.pokeapi.Models.Region;
 		    private String name;
 		    private int height;
 		    private int weight;
-		    private Map<String,String> stats;
-		    private Region region;
-		    private Map<Integer, String> types;
+		    private List<String> abilities; 
+		    private List<String> moves; 
+		    private Map<String, String> stats; 
+		    private Map<Integer, String> types; 
+		    private String pictureUrl;
+		    private String description; 
 	}
