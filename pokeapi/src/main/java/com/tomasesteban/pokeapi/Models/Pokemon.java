@@ -1,0 +1,41 @@
+package com.tomasesteban.pokeapi.Models;
+
+import lombok.*;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.List;
+
+@Entity
+@Table(name = "pokemons")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Pokemon implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pokemon_id")
+    private Long id;
+    @NotNull
+    private String name;
+    private int height;
+    private int weight;
+    @ManyToOne
+    @JoinColumn(name = "generation_id")
+    private Generation generation;
+    @OneToOne
+    @JoinColumn(name = "stats_id")
+    private Stats stats;
+    @ManyToOne
+    @JoinColumn(name = "region_id")
+    private Region region;
+    @ManyToMany
+    @JoinTable(
+            name = "pokemon_type",
+            joinColumns = @JoinColumn(name = "pokemon_id"),
+            inverseJoinColumns = @JoinColumn(name = "type_id"))
+    private List<Type> types;
+   
+}
